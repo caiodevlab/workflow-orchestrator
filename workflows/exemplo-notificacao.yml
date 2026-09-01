@@ -1,0 +1,24 @@
+name: exemplo-notificacao
+description: Workflow exemplo — busca metricas, checa threshold, alerta se passar
+
+nodes:
+  - id: fetch_metrics
+    type: shell
+    config:
+      command: "echo '{\"cpu_usage\": 85}'"
+      timeout: 10
+
+  - id: parse_value
+    type: python
+    config:
+      code: |
+        import json
+        data = json.loads(data)
+        result = {"alert": float(data["cpu_usage"]) > 80, "value": data["cpu_usage"]}
+
+  - id: send_alert
+    type: shell
+    depends_on:
+      - parse_value
+    config:
+      command: "echo 'ALERTA: CPU em {{ parse_value.value }}%'"
